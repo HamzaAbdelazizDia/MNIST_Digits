@@ -52,23 +52,23 @@ export default function Home() {
     setSequenceIndex(nextIndex);
   };
 
-  const updateUserCount = () => {
-    const users = storage.getUsers();
+  const updateUserCount = async () => {
+    const users = await storage.getUsers();
     const count = users[currentUser || '']?.count || 0;
     setUserCount(count);
   };
 
-  const handleSubmitDrawing = (imageData: number[]) => {
+  const handleSubmitDrawing = async (imageData: number[]) => {
     if (!currentUser) return;
     
-    storage.saveDrawing(currentUser, currentDigit, imageData);
+    await storage.saveDrawing(currentUser, currentDigit, imageData);
     setShowSuccess(true);
     
     setTimeout(() => {
       setShowSuccess(false);
     }, 1000);
     
-    updateUserCount();
+    await updateUserCount();
   };
 
   const handleLogout = () => {
