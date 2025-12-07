@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MNIST Digit Collection - Draw & Contribute!</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <span class="rocket-icon">🚀</span>
+                <h1>MNIST<span class="fire">🔥</span>Draw</h1>
+            </div>
+            <nav class="nav-buttons">
+                <button class="nav-btn" onclick="showSection('draw')">Draw</button>
+                <button class="nav-btn" onclick="showSection('leaderboard')">Leaderboard</button>
+                <button class="nav-btn admin-btn" onclick="showAdminLogin()">Admin</button>
+            </nav>
+        </header>
+
+        <!-- Drawing Section -->
+        <section id="draw-section" class="section active">
+            <div class="welcome-card" id="welcome-card">
+                <div class="card-glow"></div>
+                <h2>Welcome, Artist! 🎨</h2>
+                <p>Help us train AI by drawing handwritten digits</p>
+                <input type="text" id="username-input" placeholder="Enter your name" maxlength="20">
+                <button class="primary-btn" onclick="startDrawing()">
+                    <span>Start Drawing</span>
+                    <span class="btn-icon">🚀</span>
+                </button>
+            </div>
+
+            <div class="drawing-interface" id="drawing-interface" style="display: none;">
+                <div class="user-info">
+                    <span class="user-badge">👤 <span id="current-user"></span></span>
+                    <span class="count-badge">🎯 <span id="user-count">0</span> drawn</span>
+                </div>
+
+                <div class="digit-prompt">
+                    <h2>Draw the digit:</h2>
+                    <div class="digit-display" id="digit-display">0</div>
+                </div>
+
+                <div class="canvas-container">
+                    <canvas id="drawing-canvas" width="280" height="280"></canvas>
+                    <div class="canvas-border"></div>
+                </div>
+
+                <div class="instructions">
+                    <p>✨ Draw with your finger or mouse</p>
+                    <p>📏 Keep it centered and clear</p>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="secondary-btn" onclick="clearCanvas()">
+                        <span>Clear</span>
+                        <span>🔄</span>
+                    </button>
+                    <button class="primary-btn" onclick="submitDrawing()">
+                        <span>Submit</span>
+                        <span>✨</span>
+                    </button>
+                </div>
+
+                <button class="logout-btn" onclick="logout()">Change User</button>
+            </div>
+        </section>
+
+        <!-- Leaderboard Section -->
+        <section id="leaderboard-section" class="section">
+            <div class="leaderboard-container">
+                <h2 class="section-title">🏆 Top Contributors</h2>
+                <div class="leaderboard-list" id="leaderboard-list">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Login Modal -->
+        <div id="admin-login-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeAdminLogin()">&times;</span>
+                <h2>Admin Access 🔐</h2>
+                <input type="text" id="admin-username" placeholder="Username">
+                <input type="password" id="admin-password" placeholder="Password">
+                <button class="primary-btn" onclick="adminLogin()">Login</button>
+                <p class="error-msg" id="login-error"></p>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <section id="admin-section" class="section">
+            <div class="admin-dashboard">
+                <div class="admin-header">
+                    <h2>Admin Dashboard 🎯</h2>
+                    <button class="secondary-btn" onclick="adminLogout()">Logout</button>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon">📊</div>
+                        <div class="metric-value" id="total-drawings">0</div>
+                        <div class="metric-label">Total Drawings</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">👥</div>
+                        <div class="metric-value" id="total-users">0</div>
+                        <div class="metric-label">Total Users</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">🔥</div>
+                        <div class="metric-value" id="avg-per-user">0</div>
+                        <div class="metric-label">Avg per User</div>
+                    </div>
+                </div>
+
+                <div class="digit-distribution">
+                    <h3>Digit Distribution</h3>
+                    <div class="digit-bars" id="digit-bars">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="admin-controls">
+                    <input type="text" id="user-filter" placeholder="Filter by username...">
+                    <button class="primary-btn" onclick="exportData()">
+                        <span>Export Data</span>
+                        <span>💾</span>
+                    </button>
+                </div>
+
+                <div class="entries-table">
+                    <h3>All Entries</h3>
+                    <div class="table-container" id="entries-table">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Success Animation -->
+    <div id="success-animation" class="success-animation">
+        <div class="success-content">
+            <span class="success-icon">🎉</span>
+            <p>Awesome!</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
