@@ -57,13 +57,25 @@ export const storage = {
     try {
       console.log('🎨 Saving drawing:', { username, digit, imageDataLength: imageData.length });
       
+      // Verify Supabase is configured
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        console.error('❌ Supabase environment variables not configured!');
+        throw new Error('Database not configured. Please contact administrator.');
+      }
+      
       // FIRST: Upsert user (create if doesn't exist, or increment count)
       console.log('👤 Checking/creating user...');
-      const { data: existingUser } = await supabase
+      const { data: existingUser, error: selectError } = await supabase
         .from('users')
         .select('count')
         .eq('username', username)
         .single();
+
+      // If no user found (not an error, just doesn't exist)
+      if (!existingUser && selectError?.code !== 'PGRST116') {
+        console.error('❌ Error checking user:', selectError);
+        throw selectError;
+      }
 
       if (existingUser) {
         // Update existing user
@@ -72,7 +84,10 @@ export const storage = {
           .update({ count: existingUser.count + 1 })
           .eq('username', username);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('❌ Error updating user count:', updateError);
+          throw updateError;
+        }
         console.log('✅ User count updated');
       } else {
         // Insert new user
@@ -84,7 +99,10 @@ export const storage = {
             joined_at: new Date().toISOString(),
           }]);
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('❌ Error creating user:', insertError);
+          throw insertError;
+        }
         console.log('✅ New user created');
       }
 
