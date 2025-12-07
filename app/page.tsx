@@ -8,7 +8,7 @@ import DrawingCanvas from '@/components/DrawingCanvas';
 import Leaderboard from '@/components/Leaderboard';
 import AdminLoginModal from '@/components/AdminLoginModal';
 import AdminDashboard from '@/components/AdminDashboard';
-import SuccessAnimation from '@/components/SuccessAnimation';
+
 import { storage, generateDigitSequence } from '@/utils/storage';
 
 export default function Home() {
@@ -20,7 +20,7 @@ export default function Home() {
   const [userCount, setUserCount] = useState<number>(0);
   const [showAdminModal, setShowAdminModal] = useState<boolean>(false);
   const [isAdminMode, setIsAdminMode] = useState<boolean>(false);
-  const [showSuccess, setShowSuccess] = useState<boolean>(false);
+
 
   useEffect(() => {
     if (currentUser) {
@@ -61,14 +61,19 @@ export default function Home() {
   const handleSubmitDrawing = async (imageData: number[]) => {
     if (!currentUser) return;
     
-    await storage.saveDrawing(currentUser, currentDigit, imageData);
-    setShowSuccess(true);
-    
-    setTimeout(() => {
-      setShowSuccess(false);
-    }, 1000);
-    
-    await updateUserCount();
+    try {
+      const result = await storage.saveDrawing(currentUser, currentDigit, imageData);
+      if (result) {
+        console.log('✅ Drawing saved successfully to Supabase');
+        await updateUserCount();
+      } else {
+        console.error('❌ Failed to save drawing');
+        alert('Failed to save drawing. Please try again.');
+      }
+    } catch (error) {
+      console.error('❌ Error submitting drawing:', error);
+      alert('Error saving drawing. Please check your connection.');
+    }
   };
 
   const handleLogout = () => {
@@ -138,7 +143,6 @@ export default function Home() {
           onLogin={handleAdminLogin}
         />
 
-        <SuccessAnimation show={showSuccess} />
       </div>
     </main>
   );
