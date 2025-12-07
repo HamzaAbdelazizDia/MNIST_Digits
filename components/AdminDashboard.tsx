@@ -33,9 +33,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     }
   }, [filterText, drawings]);
 
-  const loadData = () => {
-    const allDrawings = storage.getDrawings();
-    const users = storage.getUsers();
+  const loadData = async () => {
+    const allDrawings = await storage.getDrawings();
+    const users = await storage.getUsers();
 
     const digitCounts: { [digit: number]: number } = {};
     for (let i = 0; i < 10; i++) {
@@ -60,9 +60,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     setFilteredDrawings(allDrawings);
   };
 
-  const handleExport = () => {
-    const allDrawings = storage.getDrawings();
-    const users = storage.getUsers();
+  const handleExport = async () => {
+    const allDrawings = await storage.getDrawings();
+    const users = await storage.getUsers();
     exportToJSON(allDrawings, users);
     exportToCSV(allDrawings);
   };

@@ -1,4 +1,5 @@
 import { Drawing, UserData } from '@/types';
+import { supabase } from '@/lib/supabase';
 
 const STORAGE_KEYS = {
   DRAWINGS: 'mnist_drawings',
@@ -6,52 +7,117 @@ const STORAGE_KEYS = {
 };
 
 export const storage = {
-  getDrawings: (): Drawing[] => {
-    if (typeof window === 'undefined') return [];
+  getDrawings: async (): Promise<Drawing[]> => {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEYS.DRAWINGS) || '[]');
-    } catch {
+      const { data, error } = await supabase
+        .from('drawings')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return (data || []).map((row) => ({
+        id: row.id,
+        username: row.username,
+        digit: row.digit,
+        imageData: row.image_data,
+        timestamp: row.timestamp,
+      }));
+    } catch (error) {
+      console.error('Error fetching drawings:', error);
       return [];
     }
   },
 
-  getUsers: (): UserData => {
-    if (typeof window === 'undefined') return {};
+  getUsers: async (): Promise<UserData> => {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '{}');
-    } catch {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('count', { ascending: false });
+
+      if (error) throw error;
+
+      const users: UserData = {};
+      (data || []).forEach((row) => {
+        users[row.username] = {
+          count: row.count,
+          joinedAt: row.joined_at,
+        };
+      });
+
+      return users;
+    } catch (error) {
+      console.error('Error fetching users:', error);
       return {};
     }
   },
 
-  saveDrawing: (username: string, digit: number, imageData: number[]): Drawing => {
-    const drawings = storage.getDrawings();
-    const users = storage.getUsers();
+  saveDrawing: async (username: string, digit: number, imageData: number[]): Promise<Drawing | null> => {
+    try {
+      const drawing = {
+        id: `${Date.now()}-${Math.random()}`,
+        username,
+        digit,
+        image_data: imageData,
+        timestamp: new Date().toISOString(),
+      };
 
-    const drawing: Drawing = {
-      id: `${Date.now()}-${Math.random()}`,
-      username,
-      digit,
-      imageData,
-      timestamp: new Date().toISOString(),
-    };
+      // Insert drawing
+      const { error: drawingError } = await supabase
+        .from('drawings')
+        .insert([drawing]);
 
-    drawings.push(drawing);
-    localStorage.setItem(STORAGE_KEYS.DRAWINGS, JSON.stringify(drawings));
+      if (drawingError) throw drawingError;
 
-    if (!users[username]) {
-      users[username] = { count: 0, joinedAt: new Date().toISOString() };
+      // Upsert user (increment count or create new)
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('count')
+        .eq('username', username)
+        .single();
+
+      if (existingUser) {
+        // Update existing user
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ count: existingUser.count + 1 })
+          .eq('username', username);
+
+        if (updateError) throw updateError;
+      } else {
+        // Insert new user
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert([{
+            username,
+            count: 1,
+            joined_at: new Date().toISOString(),
+          }]);
+
+        if (insertError) throw insertError;
+      }
+
+      return {
+        id: drawing.id,
+        username: drawing.username,
+        digit: drawing.digit,
+        imageData: drawing.image_data,
+        timestamp: drawing.timestamp,
+      };
+    } catch (error) {
+      console.error('Error saving drawing:', error);
+      return null;
     }
-    users[username].count += 1;
-    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-
-    return drawing;
   },
 
-  clearAll: () => {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(STORAGE_KEYS.DRAWINGS);
-    localStorage.removeItem(STORAGE_KEYS.USERS);
+  clearAll: async () => {
+    try {
+      await supabase.from('drawings').delete().neq('id', '');
+      await supabase.from('users').delete().neq('username', '');
+    } catch (error) {
+      console.error('Error clearing data:', error);
+    }
   },
 };
 

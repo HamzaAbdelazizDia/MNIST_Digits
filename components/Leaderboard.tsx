@@ -10,8 +10,8 @@ const Leaderboard: React.FC = () => {
     loadLeaderboard();
   }, []);
 
-  const loadLeaderboard = () => {
-    const users = storage.getUsers();
+  const loadLeaderboard = async () => {
+    const users = await storage.getUsers();
     const sortedUsers = Object.entries(users)
       .map(([username, data]) => ({ username, count: data.count, rank: 0 }))
       .sort((a, b) => b.count - a.count)
