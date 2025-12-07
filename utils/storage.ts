@@ -55,22 +55,10 @@ export const storage = {
 
   saveDrawing: async (username: string, digit: number, imageData: number[]): Promise<Drawing | null> => {
     try {
-      const drawing = {
-        id: `${Date.now()}-${Math.random()}`,
-        username,
-        digit,
-        image_data: imageData,
-        timestamp: new Date().toISOString(),
-      };
-
-      // Insert drawing
-      const { error: drawingError } = await supabase
-        .from('drawings')
-        .insert([drawing]);
-
-      if (drawingError) throw drawingError;
-
-      // Upsert user (increment count or create new)
+      console.log('🎨 Saving drawing:', { username, digit, imageDataLength: imageData.length });
+      
+      // FIRST: Upsert user (create if doesn't exist, or increment count)
+      console.log('👤 Checking/creating user...');
       const { data: existingUser } = await supabase
         .from('users')
         .select('count')
@@ -85,6 +73,7 @@ export const storage = {
           .eq('username', username);
 
         if (updateError) throw updateError;
+        console.log('✅ User count updated');
       } else {
         // Insert new user
         const { error: insertError } = await supabase
@@ -96,15 +85,47 @@ export const storage = {
           }]);
 
         if (insertError) throw insertError;
+        console.log('✅ New user created');
       }
 
-      return {
-        id: drawing.id,
-        username: drawing.username,
-        digit: drawing.digit,
-        imageData: drawing.image_data,
-        timestamp: drawing.timestamp,
+      // SECOND: Insert drawing (now that user exists)
+      const drawing = {
+        username,
+        digit,
+        image_data: imageData,
+        timestamp: new Date().toISOString(),
       };
+
+      console.log('📤 Inserting drawing to Supabase...');
+      const { error: drawingError, data: drawingData } = await supabase
+        .from('drawings')
+        .insert([drawing])
+        .select();
+
+      if (drawingError) {
+        console.error('❌ Drawing insert error:', {
+          message: drawingError.message,
+          details: drawingError.details,
+          hint: drawingError.hint,
+          code: drawingError.code,
+        });
+        throw drawingError;
+      }
+      console.log('✅ Drawing saved successfully:', drawingData);
+
+      // Return the saved drawing from Supabase response
+      if (drawingData && drawingData.length > 0) {
+        const saved = drawingData[0];
+        return {
+          id: saved.id,
+          username: saved.username,
+          digit: saved.digit,
+          imageData: saved.image_data,
+          timestamp: saved.timestamp,
+        };
+      }
+
+      return null;
     } catch (error) {
       console.error('Error saving drawing:', error);
       return null;

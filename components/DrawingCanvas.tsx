@@ -29,6 +29,11 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Fill canvas with white background
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Set drawing style
     ctx.strokeStyle = '#000000';
     ctx.lineWidth = 15;
     ctx.lineCap = 'round';
@@ -146,7 +151,9 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Fill with white background instead of clearing (which makes it transparent)
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     setHasContent(false);
   };
 
@@ -160,6 +167,11 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
     const tempCtx = tempCanvas.getContext('2d');
     if (!tempCtx) return [];
 
+    // Fill temp canvas with white background first
+    tempCtx.fillStyle = '#FFFFFF';
+    tempCtx.fillRect(0, 0, 28, 28);
+    
+    // Draw the scaled image
     tempCtx.drawImage(canvas, 0, 0, 28, 28);
 
     const imageData = tempCtx.getImageData(0, 0, 28, 28);
@@ -170,6 +182,14 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
       const gray = 255 - Math.floor((data[i] + data[i + 1] + data[i + 2]) / 3);
       grayscale.push(gray);
     }
+
+    console.log('📊 Image data sample:', {
+      first10: grayscale.slice(0, 10),
+      last10: grayscale.slice(-10),
+      uniqueValues: Array.from(new Set(grayscale)).sort((a, b) => a - b).slice(0, 20),
+      minValue: Math.min(...grayscale),
+      maxValue: Math.max(...grayscale),
+    });
 
     return grayscale;
   };
